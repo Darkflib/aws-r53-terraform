@@ -1,8 +1,10 @@
 # Notes on importing state on aws with terraform
 
+If you have no state, then terraform will create the zone, even if it already exists.
 
-Mike Preston, [20.04.18 18:26]
-/Mikes-MacBook-Pro:aws-r53-terraform mike$/ terraform plan -var-file=terraform.tfvar
+*Mikes-MacBook-Pro:aws-r53-terraform mike$* terraform plan -var-file=terraform.tfvar
+
+```
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
@@ -48,47 +50,49 @@ Terraform will perform the following actions:
 
 
 Plan: 3 to add, 0 to change, 0 to destroy.
+```
 
-Mike Preston, [20.04.18 18:26]
-This is what happens if you have no state...
+This isn't ideal, but understandable.
 
-Mike Preston, [20.04.18 18:26]
-so if we do:
-Mikes-MacBook-Pro:aws-r53-terraform mike$ terraform import -var-file=terraform.tfvar aws_route53_zone.main Z3NCX1W0K7QOAD
-aws_route53_zone.main: Importing from ID "Z2NCX1W0K7QOAD"...
+However, we can import an existing zone and get terraform to track the state.
+
+*Mikes-MacBook-Pro:aws-r53-terraform mike$* terraform import -var-file=terraform.tfvar aws_route53_zone.main Z5NCX1W0K7QOAD
+
+```
+aws_route53_zone.main: Importing from ID "Z5NCX1W0K7QOAD"...
 aws_route53_zone.main: Import complete!
-  Imported aws_route53_zone (ID: Z3NCX1W0K7QOAD)
-aws_route53_zone.main: Refreshing state... (ID: Z32NCX1W0K7QOAD)
+  Imported aws_route53_zone (ID: Z5NCX1W0K7QOAD)
+aws_route53_zone.main: Refreshing state... (ID: Z5NCX1W0K7QOAD)
 
 Import successful!
 
 The resources that were imported are shown above. These resources are now in
 your Terraform state and will henceforth be managed by Terraform.
+```
 
-Mike Preston, [20.04.18 18:27]
-Mikes-MacBook-Pro:aws-r53-terraform mike$ terraform import -var-file=terraform.tfvar aws_route53_zone.dev Z1TPEIT8XJDQ9X
-
-aws_route53_zone.dev: Importing from ID "Z5TPEIT8XJDQ9X"...
+*Mikes-MacBook-Pro:aws-r53-terraform mike$* terraform import -var-file=terraform.tfvar aws_route53_zone.dev Z1TPEIT8XJDQ9X
+```
+aws_route53_zone.dev: Importing from ID "Z1TPEIT8XJDQ9X"...
 aws_route53_zone.dev: Import complete!
   Imported aws_route53_zone (ID: Z1TPEIT8XJDQ9X)
-aws_route53_zone.dev: Refreshing state... (ID: Z5TPEIT8XJDQ9X)
+aws_route53_zone.dev: Refreshing state... (ID: Z1TPEIT8XJDQ9X)
 
 Import successful!
 
 The resources that were imported are shown above. These resources are now in
 your Terraform state and will henceforth be managed by Terraform.
+```
 
-Mike Preston, [20.04.18 18:27]
-We get desired behaviour...
+Terraform is now tracking the state...
 
-Mike Preston, [20.04.18 18:27]
-Mikes-MacBook-Pro:aws-r53-terraform mike$ terraform plan -var-file=terraform.tfvar
+*Mikes-MacBook-Pro:aws-r53-terraform mike$* terraform plan -var-file=terraform.tfvar
+```
 Refreshing Terraform state in-memory prior to plan...
 The refreshed state will be used to calculate this plan, but will not be
 persisted to local or remote state storage.
 
-aws_route53_zone.dev: Refreshing state... (ID: Z5TPEIT8XJDQ9X)
-aws_route53_zone.main: Refreshing state... (ID: Z2NCX1W0K7QOAD)
+aws_route53_zone.dev: Refreshing state... (ID: Z1TPEIT8XJDQ9X)
+aws_route53_zone.main: Refreshing state... (ID: Z5NCX1W0K7QOAD)
 
 —----------------------------------------------------------------------
 
@@ -122,6 +126,6 @@ Terraform will perform the following actions:
 
 
 Plan: 1 to add, 2 to change, 0 to destroy.
+```
 
-Mike Preston, [20.04.18 18:28]
-so we can make it work even if the zones are created outside of terraform
+So we can at least deal with objects created outside terraform.
